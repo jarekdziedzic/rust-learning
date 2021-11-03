@@ -21,6 +21,10 @@ fn main() {
     let _u3 = User {
         email: u1.email.clone(),
         name: u1.name.clone(),
+        // take the rest of the fields from u1. It would be destructive
+        // for u1 if any of the remaining fields didn't implement the
+        // copy trait. Copy trait basically means that the object
+        // is copied rather than moved on assignment
         ..u1
     };
 
@@ -32,7 +36,13 @@ fn main() {
     println!("Name {}, email: {}, age: {}", u1.name, u1.email, u1.age);
     println!("Name {}, email: {}, age: {}", u2.name, u2.email, u2.age);
 
-    rectangle_main();
+    shapes_main();
+    tuple_structs_main();
+    dbg_main();
+}
+
+trait Area {
+    fn area(&self) -> u32;
 }
 
 #[derive(Debug)]
@@ -41,15 +51,76 @@ struct Rectangle {
     height : u32,
 }
 
-fn area( r : &Rectangle) -> u32 {
-    r.width * r.height
+impl Area for Rectangle {
+    fn area(self: &Rectangle) -> u32 {
+        self.width * self.height
+    }
 }
 
-fn rectangle_main() {
+fn shapes_main() {
     let r1 = Rectangle {
         width: 10,
         height: 20,
     };
 
-    println!("Area of {:#?} is {}", &r1, area(&r1));
+    println!("Area of {:#?} is {}", &r1, r1.area());
+
+    let c1 = Circle {
+        radius: 10
+    };
+    println!("Area of {:?} is {}", &c1, c1.area());
+
+    let c2 = make_circle(5);
+    println!("Area of {:?} is {}", c2, c2.area());
+}
+
+#[derive(Debug)]
+struct Circle {
+    radius : u32,
+}
+
+impl Area for Circle {
+    fn area(self : &Circle) -> u32 {
+        //FIXME: Can this be made less ugly?
+        (3.1415 * (self.radius as f64) * (self.radius as f64)) as u32
+    }
+}
+
+
+// pointless fn really, except for that it shows the syntax for returning struct objects
+fn make_circle(radius : u32) -> Circle {
+    Circle { radius }
+}
+
+#[derive(Debug)]
+struct RGB(u8, u8, u8);
+
+fn tuple_structs_main() {
+    let black = RGB(0,0,0);
+    let white = RGB(255,255,255);
+    let red = RGB(255,0,0);
+    println!("Black is {:?}", black);
+    println!("White is {:?}", white);
+    println!("Red is {:?}", red);
+}
+
+#[derive(Debug)]
+struct RGBA(u8, u8, u8, u8);
+
+fn dbg_main() {
+    let full_opacity  = 255;
+    // this does not require Debug attribute
+    let black_half_opaque = RGBA(0,0,0,dbg!(full_opacity/2));
+    // but this one does!
+    // note that dbg macro takes ownership of the argument, and then returns it back.
+    dbg!(black_half_opaque);
+    // oops that won't work!
+    // println!("{:?}", black_half_opaque);
+    let black_opaque = RGBA(0,0,0,full_opacity);
+    // pass by reference. That will work.
+    // note that dbg! prints to stderr, and println! prints to stdout
+    dbg!(&black_opaque);
+    // TODO: Find out why println! doesn't move the args, and dbg! does? What's the logic?
+    println!("{:?}", black_opaque);
+    println!("{:?}", &black_opaque);
 }
