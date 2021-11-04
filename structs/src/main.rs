@@ -6,12 +6,19 @@ struct User {
 }
 
 fn main() {
+    user_main();
+    shapes_main();
+    tuple_structs_main();
+    dbg_main();
+}
+
+fn user_main()
+{
     let u1 = User {
         email:String::from("bob.satan@gmail.com"),
         name:String::from("Bob Satan"),
         age:66,
     };
-
 
     let u2 = User {
         email: String::from("ave.cesar@gmail.com"),
@@ -35,14 +42,14 @@ fn main() {
 
     println!("Name {}, email: {}, age: {}", u1.name, u1.email, u1.age);
     println!("Name {}, email: {}, age: {}", u2.name, u2.email, u2.age);
-
-    shapes_main();
-    tuple_structs_main();
-    dbg_main();
 }
 
 trait Area {
     fn area(&self) -> u32;
+}
+
+trait CanHold {
+    fn can_hold(&self, other : &Self) -> bool;
 }
 
 #[derive(Debug)]
@@ -51,9 +58,27 @@ struct Rectangle {
     height : u32,
 }
 
+impl Rectangle {
+    fn is_square(&self) -> bool {
+        self.width == self.height
+    }
+}
+
 impl Area for Rectangle {
     fn area(self: &Rectangle) -> u32 {
         self.width * self.height
+    }
+}
+
+impl CanHold for Rectangle {
+    fn can_hold(&self, other: &Self) -> bool {
+        if self.width >= other.width && self.height == other.height {
+            true
+        } else if self.width >= other.height && self.height >= other.width {
+            true
+        } else {
+            false
+        }
     }
 }
 
@@ -64,6 +89,17 @@ fn shapes_main() {
     };
 
     println!("Area of {:#?} is {}", &r1, r1.area());
+
+    let r2 = Rectangle {
+        width: 5,
+        height: 5
+    };
+
+    println!("{:?} can hold {:?}? {}", &r1, &r2, r1.can_hold(&r2));
+    println!("{:?} can hold {:?}? {}", &r2, &r1, r2.can_hold(&r1));
+    println!("{:?} can hold {:?}? {}", &r1, &r1, r1.can_hold(&r1));
+    println!("{:?} is square? {}", &r1, r1.is_square());
+    println!("{:?} is square? {}", &r2, r2.is_square());
 
     let c1 = Circle {
         radius: 10
@@ -85,7 +121,6 @@ impl Area for Circle {
         (3.1415 * (self.radius as f64) * (self.radius as f64)) as u32
     }
 }
-
 
 // pointless fn really, except for that it shows the syntax for returning struct objects
 fn make_circle(radius : u32) -> Circle {
