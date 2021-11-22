@@ -10,13 +10,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e241d6e8-6577-4b06-9b49-507cdfbafc8a" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/enums.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../ownership/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../ownership/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,11 +60,6 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
   </component>
   <component name="RustProjectSettings">
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
@@ -90,6 +79,7 @@
       <workItem from="1636654170223" duration="2309000" />
       <workItem from="1636969800681" duration="13000" />
       <workItem from="1636995958448" duration="955000" />
+      <workItem from="1637584602830" duration="645000" />
     </task>
     <servers />
   </component>
