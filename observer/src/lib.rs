@@ -1,54 +1,61 @@
 use std::rc::{Rc, Weak};
+use std::borrow::Borrow;
 
-// Interface for talking to and keeping the termperature listeners in one container
-trait TemperatureListener {
-    fn temperature_changed(&self, new_val : i32);
+struct EventProducer<T : ?Sized> {
+    listeners : Vec<Weak<T>>
 }
 
-struct TemperatureEventProducer {
-    listeners : Vec<Weak<dyn TemperatureListener>>
-}
-
-impl TemperatureEventProducer {
-    pub fn add_listener(&mut self, listener : Weak<dyn TemperatureListener>) {
+impl<T: ?Sized> EventProducer<T>
+{
+    pub fn add_listener(&mut self, listener : Weak<T>) {
         self.listeners.push(listener);
     }
 
-    pub fn new() -> TemperatureEventProducer {
-        TemperatureEventProducer{
+    pub fn new() -> EventProducer<T> {
+        EventProducer {
             listeners: Vec::new()
         }
     }
-}
 
-struct Thermometer {
-    event_producer : TemperatureEventProducer
-}
-
-impl Thermometer {
-    fn update(&mut self, new_val : i32) {
-        for l in &self.event_producer.listeners {
+    pub fn update_listeners(&mut self, update_fn : fn (& T, i32) -> (), new_val : i32) {
+        for l in &self.listeners {
             if let Some(strong) = l.upgrade() {
-                strong.temperature_changed(new_val);
+                update_fn(strong.borrow(), new_val);
             } else {
                 //TODO drop listener
             }
         }
     }
-
-    fn add_listener(&mut self, listener : Rc<dyn TemperatureListener>) {
-        self.event_producer.add_listener(Rc::downgrade(&listener));
-    }
-
-    fn new() -> Thermometer {
-        Thermometer {event_producer : TemperatureEventProducer::new()}
-    }
 }
+
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::cell::RefCell;
+
+    // Interface for talking to and keeping the temperature listeners in one container
+    trait TemperatureListener {
+        fn temperature_changed(&self, new_val : i32);
+    }
+
+    struct Thermometer {
+        event_producer : EventProducer<dyn TemperatureListener>
+    }
+
+    impl Thermometer {
+        fn update(&mut self, new_val : i32) {
+            self.event_producer.update_listeners( TemperatureListener::temperature_changed, new_val);
+        }
+
+        fn add_listener(&mut self, listener : Rc<dyn TemperatureListener>) {
+            self.event_producer.add_listener(Rc::downgrade(&listener));
+        }
+
+        fn new() -> Thermometer {
+            Thermometer {event_producer : EventProducer::<dyn TemperatureListener>::new()}
+        }
+    }
 
     struct TestTemperatureListener {
         last_val : RefCell<i32>
