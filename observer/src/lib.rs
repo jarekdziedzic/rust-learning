@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 
 // Interface for talking to and keeping the termperature listeners in one container
 trait TemperatureListener {
@@ -6,11 +6,11 @@ trait TemperatureListener {
 }
 
 struct TemperatureEventProducer {
-    listeners : Vec<Rc<dyn TemperatureListener>>
+    listeners : Vec<Weak<dyn TemperatureListener>>
 }
 
 impl TemperatureEventProducer {
-    pub fn add_listener(&mut self, listener : Rc<dyn TemperatureListener>) {
+    pub fn add_listener(&mut self, listener : Weak<dyn TemperatureListener>) {
         self.listeners.push(listener);
     }
 
@@ -28,12 +28,16 @@ struct Thermometer {
 impl Thermometer {
     fn update(&mut self, new_val : i32) {
         for l in &self.event_producer.listeners {
-            l.temperature_changed(new_val);
+            if let Some(strong) = l.upgrade() {
+                strong.temperature_changed(new_val);
+            } else {
+                //TODO drop listener
+            }
         }
     }
 
     fn add_listener(&mut self, listener : Rc<dyn TemperatureListener>) {
-        self.event_producer.add_listener(listener);
+        self.event_producer.add_listener(Rc::downgrade(&listener));
     }
 
     fn new() -> Thermometer {
@@ -94,6 +98,17 @@ mod tests {
         thermometer.add_listener(ttl.clone());
         thermometer.add_listener(ttl2.clone());
         thermometer.add_listener(attl.clone());
+
+        // TODO: Find out why ttl.strong_count() doesn't work?
+        assert_eq!(1, Rc::strong_count(&ttl));
+    }
+
+    #[test]
+    fn test_value_change()
+    {
+        let mut thermometer = Thermometer::new();
+        let ttl = Rc::new(TestTemperatureListener::new());
+        thermometer.add_listener(ttl.clone());
         thermometer.update(5);
         assert_eq!(5, *ttl.last_val.borrow());
     }
