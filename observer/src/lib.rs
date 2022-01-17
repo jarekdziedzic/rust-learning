@@ -35,17 +35,17 @@ mod tests {
     use std::sync::{Arc, Mutex, RwLock};
     use std::thread;
 
-    trait TemperatureListener {
+    trait TemperatureListener : Sync + Send {
         fn temperature_changed(&self, new_val : i32);
     }
 
     struct Thermometer {
-        event_producer : EventProducer<dyn TemperatureListener + Sync + Send>
+        event_producer : EventProducer<dyn TemperatureListener>
     }
 
     impl Thermometer {
-        // forwarded to EventProducer<Self>:
-        fn add_listener(&mut self, listener : Arc<dyn TemperatureListener + Sync + Send>) {
+        // forwarded to EventProducer<T>:
+        fn add_listener(&mut self, listener : Arc<dyn TemperatureListener>) {
             self.event_producer.add_listener(Arc::downgrade(&listener));
         }
 
@@ -54,7 +54,7 @@ mod tests {
         }
 
         fn new() -> Thermometer {
-            Thermometer {event_producer : EventProducer::<dyn TemperatureListener + Sync + Send>::new()}
+            Thermometer {event_producer : EventProducer::<dyn TemperatureListener>::new()}
         }
     }
 
