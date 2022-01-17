@@ -1,23 +1,23 @@
-use std::sync::{Weak, Mutex};
+use std::sync::Weak;
 use std::borrow::Borrow;
 
 struct EventProducer<T : ?Sized> {
-    listeners : Mutex<Vec<Weak<T>>>
+    listeners : Vec<Weak<T>>
 }
 
 impl<T: ?Sized> EventProducer<T>  {
     pub fn add_listener(&mut self, listener : Weak<T>) {
-        self.listeners.lock().expect("Failed to lock listener mutex").push(listener);
+        self.listeners.push(listener);
     }
 
     pub fn new() -> EventProducer<T> {
         EventProducer {
-            listeners: Mutex::new(Vec::new())
+            listeners: Vec::new()
         }
     }
 
     pub fn update_listeners(&mut self, update_fn : fn (& T, i32) -> (), new_val : i32) {
-        self.listeners.lock().expect("Failed to lock listener mutex").retain(|listener| {
+        self.listeners.retain(|listener| {
             if let Some(strong) = listener.upgrade() {
                 update_fn(strong.borrow(), new_val);
                 true
@@ -32,8 +32,7 @@ impl<T: ?Sized> EventProducer<T>  {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::RwLock;
-    use std::sync::Arc;
+    use std::sync::{Arc, Mutex, RwLock};
     use std::thread;
 
     trait TemperatureListener {
@@ -41,21 +40,21 @@ mod tests {
     }
 
     struct Thermometer {
-        event_producer : Mutex<EventProducer<dyn TemperatureListener + Sync + Send>>
+        event_producer : EventProducer<dyn TemperatureListener + Sync + Send>
     }
 
     impl Thermometer {
         // forwarded to EventProducer<Self>:
         fn add_listener(&mut self, listener : Arc<dyn TemperatureListener + Sync + Send>) {
-            self.event_producer.lock().unwrap().add_listener(Arc::downgrade(&listener));
+            self.event_producer.add_listener(Arc::downgrade(&listener));
         }
 
         fn update(&mut self, new_val : i32) {
-            self.event_producer.lock().unwrap().update_listeners( TemperatureListener::temperature_changed, new_val);
+            self.event_producer.update_listeners( TemperatureListener::temperature_changed, new_val);
         }
 
         fn new() -> Thermometer {
-            Thermometer {event_producer : Mutex::new(EventProducer::<dyn TemperatureListener + Sync + Send>::new())}
+            Thermometer {event_producer : EventProducer::<dyn TemperatureListener + Sync + Send>::new()}
         }
     }
 
