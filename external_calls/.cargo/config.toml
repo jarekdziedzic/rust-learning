@@ -1,0 +1,2 @@
+[build]
+rustflags="-L /home/jarek/workspace/rust/external_calls/cmake-build-debug/"
